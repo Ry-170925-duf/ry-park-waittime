@@ -1,0 +1,456 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>USJ待ち時間モニター</title>
+
+<style>
+body{
+  font-family: "Hiragino Sans", "Yu Gothic", sans-serif;
+  margin:0;
+  padding:20px;
+  /* 明るいイエロー・クリーム系のグラデーション */
+  background: linear-gradient(135deg, #fefce8, #fef9c3, #fef08a);
+  min-height:100vh;
+  color:#1e293b;
+}
+
+/* タイトル */
+h1{
+  text-align:center;
+  font-size:34px;
+  margin-bottom:28px;
+  color:#ea580c; /* 濃いオレンジ */
+  font-weight:900;
+  letter-spacing:1px;
+}
+
+/* 更新ボタン */
+button{
+  display:block;
+  margin:0 auto 20px auto;
+  padding:14px 30px;
+  border:none;
+  border-radius:999px;
+  /* オレンジ〜ピンクがかったオレンジのグラデーション */
+  background: linear-gradient(90deg, #ea580c, #f97316);
+  color:white;
+  font-size:16px;
+  font-weight:bold;
+  cursor:pointer;
+  box-shadow: 0 8px 18px rgba(234, 88, 12, 0.25);
+  transition:.2s;
+}
+
+button:hover{
+  transform: translateY(-2px) scale(1.03);
+}
+
+/* 検索ボックス */
+.search-area{
+  display:flex;
+  justify-content:center;
+  margin-bottom:22px;
+}
+
+.search-area input{
+  width:100%;
+  max-width:520px;
+  padding: 16px 22px;
+  border:none;
+  border-radius:22px;
+  font-size:16px;
+  font-weight:600;
+  color:#0f172a;
+  background: linear-gradient(145deg, rgba(255,255,255,.92), rgba(255,255,255,.72));
+  backdrop-filter:blur(14px);
+  box-shadow: 0 10px 28px rgba(234, 88, 12, 0.08), inset 0 1px 0 rgba(255,255,255,.8);
+  transition:.25s;
+}
+
+.search-area input::placeholder{
+  color:#94a3b8;
+}
+
+.search-area input:focus{
+  outline:none;
+  transform: translateY(-1px);
+  box-shadow: 0 0 0 5px rgba(249, 115, 22, 0.22), 0 14px 34px rgba(234, 88, 12, 0.15);
+}
+
+/* コントロールUI */
+.controls{
+  display:flex;
+  justify-content:center;
+  align-items:flex-end;
+  gap:18px;
+  margin-bottom:30px;
+  flex-wrap:wrap;
+}
+
+.select-wrap{
+  display:flex;
+  flex-direction:column;
+  gap:8px;
+}
+
+.select-wrap label{
+  font-size:13px;
+  font-weight:800;
+  color:#64748b;
+  padding-left:8px;
+  letter-spacing:.5px;
+}
+
+.controls select{
+  appearance:none;
+  -webkit-appearance:none;
+  -moz-appearance:none;
+  border:none;
+  border-radius:20px;
+  padding: 15px 52px 15px 18px;
+  min-width:230px;
+  font-size:15px;
+  font-weight:700;
+  color:#0f172a;
+  cursor:pointer;
+  transition:.25s;
+  backdrop-filter:blur(14px);
+  background: linear-gradient(145deg, rgba(255,255,255,.92), rgba(255,255,255,.72));
+  box-shadow: 0 10px 28px rgba(234, 88, 12, 0.08), inset 0 1px 0 rgba(255,255,255,.8);
+  background-image:
+    linear-gradient(45deg, transparent 50%, #ea580c 50%),
+    linear-gradient(135deg, #ea580c 50%, transparent 50%);
+  background-position: calc(100% - 24px) calc(50% - 3px), calc(100% - 18px) calc(50% - 3px);
+  background-size: 6px 6px;
+  background-repeat:no-repeat;
+}
+
+/* グリッド */
+.grid{
+  display:grid;
+  grid-template-columns: repeat(auto-fill,minmax(260px,1fr));
+  gap:18px;
+}
+
+/* カード */
+.card{
+  position:relative;
+  background:white;
+  border-radius:24px;
+  padding:18px;
+  overflow:hidden;
+  box-shadow: 0 10px 24px rgba(148,163,184,.18);
+  transition:.2s;
+}
+
+.card::before{
+  content:"";
+  position:absolute;
+  top:0;
+  left:0;
+  width:100%;
+  height:6px;
+  /* カード上部のラインもオレンジベースに */
+  background: linear-gradient(90deg, #ea580c, #f59e0b, #22c55e);
+}
+
+.card:hover{
+  transform:translateY(-4px);
+  box-shadow: 0 14px 28px rgba(148,163,184,.28);
+}
+
+.name{
+  font-size:19px;
+  font-weight:700;
+  line-height:1.5;
+  margin-bottom:12px;
+  color:#0f172a;
+}
+
+.wait{
+  font-size:46px;
+  font-weight:900;
+  line-height:1;
+}
+
+.wait.low{ color:#22c55e; }
+.wait.middle{ color:#f59e0b; }
+.wait.high{ color:#ef4444; }
+
+.status{
+  margin-top:12px;
+  color:#64748b;
+  font-size:13px;
+}
+
+.loading{
+  background:white;
+  border-radius:24px;
+  padding:30px;
+  text-align:center;
+  box-shadow: 0 10px 24px rgba(148,163,184,.18);
+}
+
+.updated{
+  text-align:center;
+  margin-top:28px;
+  color:#64748b;
+  font-size:14px;
+}
+
+.footer{
+  margin-top:50px;
+  padding:30px 20px;
+  text-align:center;
+  border-top: 1px solid rgba(148,163,184,.25);
+  color:#64748b;
+  font-size:13px;
+  line-height:1.8;
+}
+
+.footer-note{
+  margin-top:10px;
+  font-size:12px;
+  color:#94a3b8;
+}
+
+@media (max-width:640px){
+  body{ padding:14px; }
+  h1{ font-size:26px; }
+  .grid{ grid-template-columns:1fr; }
+  .wait{ font-size:38px; }
+  .controls{ flex-direction:column; align-items:stretch; }
+  .controls select{ width:100%; min-width:unset; }
+}
+</style>
+</head>
+
+<body>
+
+<h1>
+ユニバーサル・スタジオ・ジャパン<br>
+リアルタイム待ち時間モニター
+</h1>
+
+<button onclick="loadData()">更新</button>
+
+<!-- 検索 -->
+<div class="search-area">
+  <input type="text" id="searchInput" placeholder="アトラクションを検索...">
+</div>
+
+<!-- 並び替え・フィルター -->
+<div class="controls">
+  <div class="select-wrap">
+    <label>並び替え</label>
+    <select id="sortSelect">
+      <option value="wait-desc">待ち時間が長い順</option>
+      <option value="wait-asc">待ち時間が短い順</option>
+      <option value="name">名前順</option>
+    </select>
+  </div>
+
+  <div class="select-wrap">
+    <label>フィルター</label>
+    <select id="filterSelect">
+      <option value="all">すべて</option>
+      <option value="operating">運営中のみ</option>
+      <option value="busy">待ち時間 60分以上</option>
+    </select>
+  </div>
+</div>
+
+<div id="list" class="grid"></div>
+<div class="updated" id="updated"></div>
+
+<footer class="footer">
+  <p>© 2026 Ry - USJ待ち時間モニター All Rights Reserved.</p>
+  <p class="footer-note">
+    ※本サイトは個人が制作した非公式のファンサイトであり、合同会社ユー・エス・ジェイおよびユニバーサル・デスティネーションズ＆エクスペリエンスとは一切関係ありません。
+  </p>
+  <p class="footer-note">
+    ※非公式のAPIから待ち時間情報を取得しているため、公式アプリやサイトの情報と異なることがあります。<br>
+    本情報の利用により生じた損害について、当サイトは一切の責任を負いません。
+  </p>
+</footer>
+
+<script>
+// USJのAPI URL
+const USJ_URL = "https://api.themeparks.wiki/v1/entity/47f61fac-7586-41ac-ae80-61c9257cf33e/live";
+
+/* 英語名から日本語名への変換辞書 */
+const nameJP = {
+  "Mario Kart: Koopa's Challenge™": "マリオカート ～クッパの挑戦状～",
+  "Yoshi's Adventure™": "ヨッシー・アドベンチャー",
+  "Harry Potter and the Forbidden Journey™": "ハリー・ポッター・アンド・ザ・フォービドゥン・ジャーニー",
+  "Flight of the Hippogriff™": "フライト・オブ・ザ・ヒッポグリフ",
+  "Despicable Me: Minion Mayhem": "ミニオン・ハチャメチャ・ライド",
+  "Freeze Ray Sliders": "ミニオン・ハチャメチャ・アイス",
+  "The Flying Dinosaur": "ザ・フライング・ダイナソー",
+  "Jurassic Park - The Ride": "ジュラシック・パーク・ザ・ライド",
+  "Hollywood Dream - The Ride": "ハリウッド・ドリーム・ザ・ライド",
+  "Hollywood Dream - The Ride: Backdrop": "ハリウッド・ドリーム・ザ・ライド ～バックドロップ～",
+  "JAWS": "ジョーズ",
+  "WaterWorld": "ウォーターワールド",
+  "The Flying Snoopy": "フライング・スヌーピー",
+  "Snoopy's Flying Ace Adventure": "スヌーピーのグレート・レース",
+  "Hello Kitty's Cupcake Dream": "ハローキティのカップケーキ・ドリーム",
+  "Elmo's Go-Go Skateboard": "エルモのゴーゴー・スケートボード",
+  "Moppy's Balloon Trip": "モッピーのバルーン・トリップ",
+  "Big Bird's Big Top Circus": "ビッグバードのビッグトップ・サーカス",
+  "Elmo's Bubble Bubble": "エルモのバブル・バブル",
+  "Sing on Tour": "シング・オン・ツアー",
+  "Mine Cart Madness™": "ドンキーコングのクレイジー・トロッコ",
+  "Space Fantasy - The Ride": "スペース・ファンタジー・ザ・ライド",
+  "Elmo's Little Drive": "エルモのリトル・ドライブ",
+  "Ernie's Rubber Duckie Race": "アーニーのラバーダック・レース",
+  "Abby's Magical Tree": "アビーのマジカル・ツリー",
+  "Sesame's Big Drive": "セサミのビッグ・ドライブ",
+  "Grover's Construction Company": "グローバーのコンストラクション・カンパニー",
+  "Abby's Magical Party": "アビーのマジカル・パーティ",
+  "Big Bird's Big Nest": "ビッグバードのビッグ・ネスト",
+  "Water Garden": "ウォーター・ガーデン",
+  "Cookie Monster Slide": "クッキーモンスター・スライド",
+  "Bert and Ernie's Wonder: The Sea": "バート＆アーニーのワンダー・ザ・シー",
+  "Amity Boardwalk Games": "アミティ・ボードウォーク・ゲーム（ゲームコーナー）",
+  "Space Killer": "スペース・キラー（ゲームコーナー）",
+  "Banana Cabana": "バナナ・カバナ（ゲームコーナー）",
+  "Bert & Ernie Prop Shop Game Place": "プロップショップ・ゲームプレイス",
+  "Festival In The Park": "フェスティバル・イン・ザ・パーク（ゲームコーナー）",
+  "Power-Up Band™ Key Challenges": "パワーアップバンド・キーチャレンジ",
+
+  /* ===== 期間限定・新アトラクション系 ===== */
+    "Space Fantasy - The Ride: CLUB ZEDD REMIX": "スペース・ファンタジー・ザ・ライド：CLUB ZEDD REMIX",
+    "JUJUTSU KAISEN: The Real 4-D — Clock Tower of Recurrence": "呪術廻戦・ザ・リアル 4-D",
+    "Detective Conan 4-D Live Show: Jewel Under the Starry Sky": "名探偵コナン 4-D ライブ・ショー ～星空の宝石（ジュエル）～",
+    "Illumination’s Villain-Con Minion Blast": "ミニオン・ブラスト（ヴィラン・コン）"
+};
+
+function statusJP(status){
+  switch(status){
+    case "OPERATING": return "運営中";
+    case "DOWN": return "休止中";
+    case "CLOSED": return "終了";
+    case "REFURBISHMENT": return "休止";
+    default: return status;
+  }
+}
+
+function waitClass(wait){
+  if(wait >= 120) return "high";
+  if(wait >= 60) return "middle";
+  return "low";
+}
+
+function createLoading(text){
+  const div = document.createElement("div");
+  div.className = "loading";
+  div.textContent = text;
+  return div;
+}
+
+function createCard(item){
+  const card = document.createElement("div");
+  card.className = "card";
+
+  const name = document.createElement("div");
+  name.className = "name";
+  name.textContent = nameJP[item.name] || item.name;
+
+  const waitDiv = document.createElement("div");
+  waitDiv.className = "wait";
+
+  const waitTime = item.queue?.STANDBY?.waitTime;
+  if(waitTime != null){
+    waitDiv.textContent = waitTime + "分";
+    waitDiv.classList.add(waitClass(waitTime));
+  } else {
+    waitDiv.textContent = "--";
+    waitDiv.classList.add("low");
+  }
+
+  const status = document.createElement("div");
+  status.className = "status";
+  status.textContent = statusJP(item.status);
+
+  card.appendChild(name);
+  card.appendChild(waitDiv);
+  card.appendChild(status);
+
+  return card;
+}
+
+async function loadData(){
+  const list = document.getElementById("list");
+  list.innerHTML = "";
+  list.appendChild(createLoading("読み込み中..."));
+
+  try{
+    const res = await fetch(USJ_URL);
+    if (!res.ok) throw new Error(`APIエラー ${res.status}`);
+    
+    const data = await res.json();
+    let attractions = (data.liveData || []).filter(x => x.entityType === "ATTRACTION");
+
+    const filterType = document.getElementById("filterSelect").value;
+    const sortType = document.getElementById("sortSelect").value;
+    const keyword = document.getElementById("searchInput").value.toLowerCase();
+
+    /* 検索 */
+    if(keyword){
+      attractions = attractions.filter(x => {
+        const jpName = nameJP[x.name] || x.name;
+        return jpName.toLowerCase().includes(keyword);
+      });
+    }
+
+    /* フィルター */
+    if(filterType === "operating"){
+      attractions = attractions.filter(x => x.status === "OPERATING");
+    }
+    if(filterType === "busy"){
+      attractions = attractions.filter(x => (x.queue?.STANDBY?.waitTime ?? 0) >= 60);
+    }
+
+    /* 並び替え */
+    if(sortType === "wait-desc"){
+      attractions.sort((a,b) => (b.queue?.STANDBY?.waitTime ?? -1) - (a.queue?.STANDBY?.waitTime ?? -1));
+    }
+    if(sortType === "wait-asc"){
+      attractions.sort((a,b) => (a.queue?.STANDBY?.waitTime ?? 999) - (b.queue?.STANDBY?.waitTime ?? 999));
+    }
+    if(sortType === "name"){
+      attractions.sort((a,b) => {
+        const aName = nameJP[a.name] || a.name;
+        const bName = nameJP[b.name] || b.name;
+        return aName.localeCompare(bName, "ja");
+      });
+    }
+
+    list.innerHTML = "";
+    attractions.forEach(item => {
+      list.appendChild(createCard(item));
+    });
+
+    document.getElementById("updated").textContent = "更新: " + new Date().toLocaleString("ja-JP");
+
+  }catch(err){
+    console.error(err);
+    list.innerHTML = "";
+    list.appendChild(createLoading("取得失敗"));
+  }
+}
+
+document.getElementById("sortSelect").addEventListener("change", loadData);
+document.getElementById("filterSelect").addEventListener("change", loadData);
+document.getElementById("searchInput").addEventListener("input", loadData);
+
+loadData();
+setInterval(loadData, 60000);
+</script>
+
+</body>
+</html>

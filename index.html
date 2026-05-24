@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ry - アトラクション待ち時間モニターポータル</title>
+    <style>
+        /* 全体のリセットと背景 */
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        
+        body {
+            font-family: 'Helvetica Neue', Arial, 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', Meiryo, sans-serif;
+            /* 明るく落ち着いたパステル調の水色 */
+            background-color: #e6f0fa;
+            color: #2c3e50;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+
+        /* メインコンテンツを中央に配置するコンテナ */
+        .main-wrapper {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 40px 20px;
+        }
+
+        /* ポータル全体のカード（要素をまとめて見栄えを良くする） */
+        .portal-card {
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(10px); /* すりガラス効果 */
+            -webkit-backdrop-filter: blur(10px);
+            padding: 40px 30px;
+            border-radius: 24px;
+            box-shadow: 0 10px 30px rgba(163, 177, 198, 0.3);
+            width: 100%;
+            max-width: 440px;
+            text-align: center;
+        }
+
+        /* ヘッダー */
+        header {
+            margin-bottom: 35px;
+        }
+        header h1 {
+            font-size: 22px;
+            font-weight: ultra bold;
+            color: #1a2a3a;
+            line-height: 1.5;
+            letter-spacing: 0.05em;
+            margin-bottom: 12px;
+        }
+        header p {
+            font-size: 14px;
+            color: #657786;
+        }
+
+        /* ボタンのコンテナ */
+        .button-container {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        /* 共通ボタンスタイル */
+        .park-btn {
+            display: block;
+            width: 100%;
+            padding: 20px;
+            font-size: 16px;
+            font-weight: bold;
+            text-align: center;
+            text-decoration: none;
+            color: #ffffff;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+        }
+
+        /* タップ（ホバー）時のエフェクト */
+        @media (hover: hover) {
+            .park-btn:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+                filter: brightness(1.05);
+            }
+        }
+        .park-btn:active {
+            transform: translateY(1px);
+        }
+
+        /* ディズニー用のボタンスタイル（シンデレラ城や魔法をイメージしたブルー） */
+        .btn-disney {
+            background: linear-gradient(135deg, #2575fc 0%, #1a365d 100%);
+        }
+
+        /* USJ用のボタンスタイル（エネルギッシュなハリウッド感のあるゴールド） */
+        .btn-usj {
+            background: linear-gradient(135deg, #f39c12 0%, #d35400 100%);
+        }
+
+        /* フッター */
+        footer {
+            background-color: #ffffff;
+            border-top: 1px solid #e1e8ed;
+            padding: 20px 0;
+            text-align: center;
+            width: 100%;
+        }
+        footer .footer-links {
+            margin-bottom: 8px;
+        }
+        footer .footer-links a {
+            color: #657786;
+            text-decoration: none;
+            font-size: 12px;
+            margin: 0 10px;
+            transition: color 0.2s;
+        }
+        footer .footer-links a:hover {
+            color: #2575fc;
+        }
+        footer .footer-c {
+            font-size: 11px;
+            color: #aab8c2;
+        }
+        footer .footer-p {
+            margin-top: 17px;
+            font-size: 11px;
+            color: #aab8c2;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- メインコンテンツ -->
+    <div class="main-wrapper">
+        <div class="portal-card">
+            <header>
+                <h1>テーマパーク アトラクション<br>リアルタイム待ち時間モニター</h1>
+                <p>確認したいパークを選択してください。</p>
+            </header>
+
+            <div class="button-container">
+                <a href="disneywaittime.html" class="park-btn btn-disney">
+                    東京ディズニーリゾート
+                </a>
+                <a href="usjwaittime.html" class="park-btn btn-usj">
+                    ユニバーサル・スタジオ・ジャパン
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- 画面最下部に固定されたフッター -->
+    <footer>
+        <p class="footer-c">&copy; 2026 Ry - アトラクションリアルタイム待ち時間モニター</p>
+
+        <p class="footer-p">※非公式のAPIから待ち時間情報を取得しているため、 公式アプリやサイトの情報と異なることがあります。<br>
+            本情報の利用により生じた損害について、当サイトは一切の責任を負いません。
+        </p>
+    </footer>
+
+</body>
+</html>

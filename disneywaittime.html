@@ -1,0 +1,1015 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>TDR待ち時間モニター</title>
+
+<style>
+
+body{
+  font-family:
+    "Hiragino Sans",
+    "Yu Gothic",
+    sans-serif;
+
+  margin:0;
+  padding:20px;
+
+  background:
+    linear-gradient(
+      135deg,
+      #dbeafe,
+      #e0f2fe,
+      #f0f9ff
+    );
+
+  min-height:100vh;
+
+  color:#1e293b;
+}
+
+/* タイトル */
+
+h1{
+  text-align:center;
+
+  font-size:34px;
+
+  margin-bottom:28px;
+
+  color:#2563eb;
+
+  font-weight:900;
+
+  letter-spacing:1px;
+}
+
+/* 更新ボタン */
+
+button{
+  display:block;
+
+  margin:0 auto 20px auto;
+
+  padding:14px 30px;
+
+  border:none;
+
+  border-radius:999px;
+
+  background:
+    linear-gradient(
+      90deg,
+      #60a5fa,
+      #38bdf8
+    );
+
+  color:white;
+
+  font-size:16px;
+
+  font-weight:bold;
+
+  cursor:pointer;
+
+  box-shadow:
+    0 8px 18px rgba(59,130,246,.25);
+
+  transition:.2s;
+}
+
+button:hover{
+
+  transform:
+    translateY(-2px)
+    scale(1.03);
+}
+
+/* =========================
+   検索ボックス
+========================= */
+
+.search-area{
+
+  display:flex;
+
+  justify-content:center;
+
+  margin-bottom:22px;
+}
+
+.search-area input{
+
+  width:100%;
+
+  max-width:520px;
+
+  padding:
+    16px 22px;
+
+  border:none;
+
+  border-radius:22px;
+
+  font-size:16px;
+
+  font-weight:600;
+
+  color:#0f172a;
+
+  background:
+    linear-gradient(
+      145deg,
+      rgba(255,255,255,.92),
+      rgba(255,255,255,.72)
+    );
+
+  backdrop-filter:blur(14px);
+
+  box-shadow:
+    0 10px 28px rgba(59,130,246,.12),
+    inset 0 1px 0 rgba(255,255,255,.8);
+
+  transition:.25s;
+}
+
+.search-area input::placeholder{
+
+  color:#94a3b8;
+}
+
+.search-area input:focus{
+
+  outline:none;
+
+  transform:
+    translateY(-1px);
+
+  box-shadow:
+    0 0 0 5px rgba(96,165,250,.22),
+    0 14px 34px rgba(59,130,246,.18);
+}
+
+/* =========================
+   コントロールUI
+========================= */
+
+.controls{
+
+  display:flex;
+
+  justify-content:center;
+
+  align-items:flex-end;
+
+  gap:18px;
+
+  margin-bottom:30px;
+
+  flex-wrap:wrap;
+}
+
+.select-wrap{
+
+  display:flex;
+
+  flex-direction:column;
+
+  gap:8px;
+}
+
+.select-wrap label{
+
+  font-size:13px;
+
+  font-weight:800;
+
+  color:#64748b;
+
+  padding-left:8px;
+
+  letter-spacing:.5px;
+}
+
+.controls select{
+
+  appearance:none;
+
+  -webkit-appearance:none;
+
+  -moz-appearance:none;
+
+  border:none;
+
+  border-radius:20px;
+
+  padding:
+    15px 52px 15px 18px;
+
+  min-width:230px;
+
+  font-size:15px;
+
+  font-weight:700;
+
+  color:#0f172a;
+
+  cursor:pointer;
+
+  transition:.25s;
+
+  backdrop-filter:blur(14px);
+
+  background:
+    linear-gradient(
+      145deg,
+      rgba(255,255,255,.92),
+      rgba(255,255,255,.72)
+    );
+
+  box-shadow:
+    0 10px 28px rgba(59,130,246,.12),
+    inset 0 1px 0 rgba(255,255,255,.8);
+
+  background-image:
+
+    linear-gradient(
+      45deg,
+      transparent 50%,
+      #60a5fa 50%
+    ),
+
+    linear-gradient(
+      135deg,
+      #60a5fa 50%,
+      transparent 50%
+    );
+
+  background-position:
+    calc(100% - 24px) calc(50% - 3px),
+    calc(100% - 18px) calc(50% - 3px);
+
+  background-size:
+    6px 6px;
+
+  background-repeat:no-repeat;
+}
+
+.controls select:hover{
+
+  transform:
+    translateY(-2px);
+
+  box-shadow:
+    0 14px 34px rgba(59,130,246,.18),
+    inset 0 1px 0 rgba(255,255,255,.9);
+}
+
+.controls select:focus{
+
+  outline:none;
+
+  box-shadow:
+    0 0 0 5px rgba(96,165,250,.22),
+    0 14px 34px rgba(59,130,246,.18);
+}
+
+/* グリッド */
+
+.grid{
+  display:grid;
+
+  grid-template-columns:
+    repeat(auto-fill,minmax(260px,1fr));
+
+  gap:18px;
+}
+
+/* カード */
+
+.card{
+  position:relative;
+
+  background:white;
+
+  border-radius:24px;
+
+  padding:18px;
+
+  overflow:hidden;
+
+  box-shadow:
+    0 10px 24px rgba(148,163,184,.18);
+
+  transition:.2s;
+}
+
+/* パーク別のグラデーションカラー */
+.card.land::before{
+  content:"";
+  position:absolute;
+  top:0;
+  left:0;
+  width:100%;
+  height:6px;
+  background: linear-gradient(
+      90deg,
+      #60a5fa,
+      #a78bfa,
+      #f472b6
+    );
+}
+
+.card.sea::before{
+  content:"";
+  position:absolute;
+  top:0;
+  left:0;
+  width:100%;
+  height:6px;
+  background: linear-gradient(
+      90deg,
+      #60a5fa,
+      #a78bfa,
+      #f472b6
+    );
+}
+
+.card:hover{
+  transform:translateY(-4px);
+
+  box-shadow:
+    0 14px 28px rgba(148,163,184,.28);
+}
+
+.park-badge {
+  font-size: 11px;
+  font-weight: 800;
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 999px;
+  margin-bottom: 6px;
+}
+.park-badge.land {
+  background-color: #eff6ff;
+  color: #1d4ed8;
+}
+.park-badge.sea {
+  background-color: #f0fdfa;
+  color: #0f766e;
+}
+
+.name{
+  font-size:19px;
+
+  font-weight:700;
+
+  line-height:1.5;
+
+  margin-bottom:12px;
+
+  color:#0f172a;
+}
+
+.wait{
+  font-size:46px;
+
+  font-weight:900;
+
+  line-height:1;
+}
+
+.wait.low{
+  color:#22c55e;
+}
+
+.wait.middle{
+  color:#f59e0b;
+}
+
+.wait.high{
+  color:#ef4444;
+}
+
+.status{
+  margin-top:12px;
+
+  color:#64748b;
+
+  font-size:13px;
+}
+
+.loading{
+  background:white;
+
+  border-radius:24px;
+
+  padding:30px;
+
+  text-align:center;
+
+  box-shadow:
+    0 10px 24px rgba(148,163,184,.18);
+}
+
+.updated{
+  text-align:center;
+
+  margin-top:28px;
+
+  color:#64748b;
+
+  font-size:14px;
+}
+
+.footer{
+  margin-top:50px;
+
+  padding:30px 20px;
+
+  text-align:center;
+
+  border-top:
+    1px solid rgba(148,163,184,.25);
+
+  color:#64748b;
+
+  font-size:13px;
+
+  line-height:1.8;
+}
+
+.footer-note{
+  margin-top:10px;
+
+  font-size:12px;
+
+  color:#94a3b8;
+}
+
+/* スマホ */
+
+@media (max-width:640px){
+
+  body{
+    padding:14px;
+  }
+
+  h1{
+    font-size:26px;
+  }
+
+  .grid{
+    grid-template-columns:1fr;
+  }
+
+  .wait{
+    font-size:38px;
+  }
+
+  .controls{
+
+    flex-direction:column;
+
+    align-items:stretch;
+  }
+
+  .controls select{
+
+    width:100%;
+
+    min-width:unset;
+  }
+}
+
+</style>
+</head>
+
+<body>
+
+<h1>
+東京ディズニーリゾート<br>
+リアルタイム待ち時間モニター
+</h1>
+
+<button onclick="loadData()">
+更新
+</button>
+
+<!-- 検索 -->
+
+<div class="search-area">
+
+  <input
+    type="text"
+    id="searchInput"
+    placeholder="アトラクションを検索..."
+  >
+
+</div>
+
+<!-- 並び替え・フィルター -->
+
+<div class="controls">
+
+  <!-- パーク選択を追加 -->
+  <div class="select-wrap">
+    <label>パーク</label>
+    <select id="parkSelect">
+      <option value="all">すべて</option>
+      <option value="land">ディズニーランド</option>
+      <option value="sea">ディズニーシー</option>
+    </select>
+  </div>
+
+  <div class="select-wrap">
+
+    <label>
+      並び替え
+    </label>
+
+    <select id="sortSelect">
+
+      <option value="wait-desc">
+        待ち時間が長い順
+      </option>
+
+      <option value="wait-asc">
+        待ち時間が短い順
+      </option>
+
+      <option value="name">
+        名前順
+      </option>
+
+    </select>
+
+  </div>
+
+  <div class="select-wrap">
+
+    <label>
+      フィルター
+    </label>
+
+    <select id="filterSelect">
+
+      <option value="all">
+        すべて
+      </option>
+
+      <option value="operating">
+        運営中のみ
+      </option>
+
+      <option value="busy">
+        待ち時間 60分以上
+      </option>
+
+    </select>
+
+  </div>
+
+</div>
+
+<div id="list" class="grid"></div>
+
+<div class="updated" id="updated"></div>
+
+<footer class="footer">
+
+  <p>
+    © 2026 Ry - TDR待ち時間モニター
+    All Rights Reserved.
+  </p>
+
+  <p class="footer-note">
+    ※本サイトは個人が制作した非公式のファンサイトであり、 ウォルト・ディズニー・カンパニーおよび 株式会社オリエンタルランドとは一切関係ありません。
+  </p>
+
+  <p class="footer-note">
+    ※非公式のAPIから待ち時間情報を取得しているため、 公式アプリやサイトの情報と異なることがあります。<br>
+    本情報の利用により生じた損害について、当サイトは一切の責任を負いません。
+  </p>
+
+</footer>
+
+<script>
+
+// ディズニーランドとディズニーシーそれぞれのURLを定義
+const LAND_URL = "https://api.themeparks.wiki/v1/entity/3cc919f1-d16d-43e0-8c3f-1dd269bd1a42/live";
+const SEA_URL  = "https://api.themeparks.wiki/v1/entity/67b290d5-3478-4f23-b601-2f8fb71ba803/live";
+
+/* 日本語名 */
+
+const nameJP = {
+
+  /* ===== 東京ディズニーランド ===== */
+
+  "Penny Arcade": "ペニーアーケード",
+  "Toon Park": "トゥーンパーク",
+  "Space Mountain": "スペース・マウンテン",
+  "Big Thunder Mountain": "ビッグサンダー・マウンテン",
+  "Splash Mountain": "スプラッシュ・マウンテン",
+  "Haunted Mansion": "ホーンテッドマンション",
+  "Pooh's Hunny Hunt": "プーさんのハニーハント",
+  "Pirates of the Caribbean": "カリブの海賊",
+  "“it’s a small world with Groot”": "イッツ・ア・スモールワールド",
+  "Jungle Cruise": "ジャングルクルーズ",
+  "Western River Railroad": "ウエスタンリバー鉄道",
+  "Mark Twain Riverboat": "マークトウェイン号",
+  "Tom Sawyer Island Rafts": "トムソーヤ島いかだ",
+  "Beaver Brothers Explorer Canoes": "ビーバーブラザーズのカヌー探検",
+  "Westernland Shootin' Gallery": "ウエスタンランド・シューティングギャラリー",
+  "Swiss Family Treehouse": "スイスファミリー・ツリーハウス",
+  "The Enchanted Tiki Room: Stitch Presents “Aloha E Komo Mai!”": "魅惑のチキルーム：スティッチ・プレゼンツ“アロハ・エ・コモ・マイ！”",
+  "Monsters, Inc. Ride & Go Seek!": "モンスターズ・インク ライド＆ゴーシーク！",
+  "Enchanted Tale of Beauty and the Beast": "美女と野獣“魔法のものがたり”",
+  "The Happy Ride with Baymax": "ベイマックスのハッピーライド",
+  "Star Tours: The Adventures Continue": "スター・ツアーズ：ザ・アドベンチャーズ・コンティニュー",
+  "Roger Rabbit's Car Toon Spin": "ロジャーラビットのカートゥーンスピン",
+  "Peter Pan's Flight": "ピーターパン空の旅",
+  "Snow White's Adventures": "白雪姫と七人のこびと",
+  "Pinocchio's Daring Journey": "ピノキオの冒険旅行",
+  "Dumbo the Flying Elephant": "空飛ぶダンボ",
+  "Dumbo The Flying Elephant":"空飛ぶダンボ",  
+  "Castle Carrousel": "キャッスルカルーセル",
+  "Gadget's Go Coaster": "ガジェットのゴーコースター",
+  "Alice's Tea Party": "アリスのティーパーティー",
+  "Cinderella's Fairy Tale Hall": "シンデレラのフェアリーテイル・ホール",
+  "Big City Vehicles": "ビッグシティ・ヴィークル",
+  "Mickey's PhilharMagic": "ミッキーのフィルハーマジック",
+  "Country Bear Theater": "カントリーベア・シアター",
+  "Stitch Encounter": "スティッチ・エンカウンター",
+  "Chip 'n Dale's Treehouse": "チップとデールのツリーハウス",
+  "Minnie's House": "ミニーの家",
+  "Goofy's Paint 'n' Play House": "グーフィーのペイント＆プレイハウス",
+  "Donald's Boat": "ドナルドのボート",
+
+  /* ===== 東京ディズニーシー ===== */
+
+  "Tower of Terror": "タワー・オブ・テラー",
+  "Journey to the Center of the Earth": "センター・オブ・ジ・アース",
+  "Indiana Jones Adventure": "インディ・ジョーンズ・アドベンチャー",
+  "Indiana Jones Adventure®: Temple of the Crystal Skull": "インディ・ジョーンズ・アドベンチャー：クリスタルスカルの魔宮",
+  "Indiana Jones Adventure®": "インディ・ジョーンズ・アドベンチャー",  
+  "Raging Spirits": "レイジングスピリッツ",
+  "20,000 Leagues Under the Sea": "海底2万マイル",
+  "Toy Story Mania!": "トイ・ストーリー・マニア！",
+  "Soaring: Fantastic Flight": "ソアリン：ファンタスティック・フライト",
+  "DisneySea Electric Railway (American Waterfront)": "ディズニーシー・エレクトリックレールウェイ（アメリカンウォーターフロント）",
+  "DisneySea Electric Railway (Port Discovery)": "ディズニーシー・エレクトリックレールウェイ（ポートディスカバリー）",
+  "DisneySea Transit Steamer Line (American Waterfront)": "ディズニーシー・トランジットスチーマーライン（アメリカンウォーターフロント）",
+  "DisneySea Transit Steamer Line (Mediterranean Harbor)": "ディズニーシー・トランジットスチーマーライン（メディテレーニアンハーバー）",
+  "DisneySea Transit Steamer Line (Lost River Delta)": "ディズニーシー・トランジットスチーマーライン（ロストリバーデルタ）",
+  "Anna and Elsa's Frozen Journey": "アナとエルサのフローズンジャーニー",
+  "Rapunzel's Lantern Festival": "ラプンツェルのランタンフェスティバル",
+  "Peter Pan's Never Land Adventure": "ピーターパンのネバーランドアドベンチャー",
+  "Nemo & Friends SeaRider": "ニモ＆フレンズ・シーライダー",
+  "Turtle Talk": "タートル・トーク",
+  "Aquatopia": "アクアトピア",
+  "Sindbad's Storybook Voyage": "シンドバッド・ストーリーブック・ヴォヤッジ",
+  "Magic Lamp Theater": "マジックランプシアター",
+  "Journey to the Center of the Earth - Single Rider": "センター・オブ・ジ・アース（シングルライダー）",
+  "Venetian Gondolas": "ヴェネツィアン・ゴンドラ",
+  "DisneySea Electric Railway": "ディズニーシー・エレクトリックレールウェイ",
+  "Transit Steamer Line": "トランジットスチーマーライン",
+  "Fortress Explorations": "フォートレス・エクスプロレーション",
+  "The Leonardo Challenge": "レオナルド・チャレンジ",
+  "Jumpin' Jellyfish": "ジャンピン・ジェリーフィッシュ",
+  "Scuttle's Scooters": "スカットルのスクーター",
+  "Blowfish Balloon Race": "フグのバルーンレース",
+  "The Whirlpool": "ワールプール",
+  "Ariel's Playground": "アリエルのプレイグラウンド",
+  "Mermaid Lagoon Theater": "マーメイドラグーンシアター",
+  "Flounder's Flying Fish Coaster": "フランダーのフライングフィッシュコースター",
+
+  /* ===== 追加系（APIブレ対応） ===== */
+
+  "Jungle Cruise: Wildlife Expeditions": "ジャングルクルーズ",
+  "Big Thunder Mountain Railroad": "ビッグサンダー・マウンテン",
+  "Splash Mountain (Tokyo Disneyland)": "スプラッシュ・マウンテン",
+  "The Magic Lamp Theater": "マジックランプシアター",
+  "Tinker Bell's Busy Buggies": "フェアリー・ティンカーベルのビジーバギー",
+  "Fairy Tinker Bell Busy Buggies": "フェアリー・ティンカーベルのビジーバギー",
+  "Big City Vehicle": "ビッグシティ・ヴィークル",
+  "Jasmine's Flying Carpets": "ジャスミンのフライングカーペット",
+  "Main Street Vehicles": "ビッグシティ・ヴィークル",
+  "Caravan Carousel": "キャラバンカルーセル",
+  "Fairy Tinker Bell's Busy Buggies": "フェアリー・ティンカーベルのビジーバギー",
+  "Omnibus": "オムニバス",
+  
+  /* fallback用（絶対保険） */
+  "UNKNOWN": "不明なアトラクション"
+};
+
+function statusJP(status){
+
+  switch(status){
+
+    case "OPERATING":
+      return "運営中";
+
+    case "DOWN":
+      return "休止中";
+
+    case "CLOSED":
+      return "終了";
+
+    case "REFURBISHMENT":
+      return "休止";
+
+    default:
+      return status;
+  }
+}
+
+function waitClass(wait){
+
+  if(wait >= 120){
+    return "high";
+  }
+
+  if(wait >= 60){
+    return "middle";
+  }
+
+  return "low";
+}
+
+function createLoading(text){
+
+  const div =
+    document.createElement("div");
+
+  div.className = "loading";
+
+  div.textContent = text;
+
+  return div;
+}
+
+function createCard(item){
+
+  const card =
+    document.createElement("div");
+
+  // パークの識別クラスを付与
+  card.className = `card ${item.parkType}`;
+
+  // パークのバッジを生成
+  const badge = document.createElement("div");
+  badge.className = `park-badge ${item.parkType}`;
+  badge.textContent = item.parkType === "land" ? "ディズニーランド" : "ディズニーシー";
+  card.appendChild(badge);
+
+  const name =
+    document.createElement("div");
+
+  name.className = "name";
+
+  /* 日本語化 */
+
+  name.textContent =
+    nameJP[item.name] || item.name;
+
+  const waitDiv =
+    document.createElement("div");
+
+  waitDiv.className = "wait";
+
+  const waitTime =
+    item.queue?.STANDBY?.waitTime;
+
+  if(waitTime != null){
+
+    waitDiv.textContent =
+      waitTime + "分";
+
+    waitDiv.classList.add(
+      waitClass(waitTime)
+    );
+
+  }else{
+
+    waitDiv.textContent = "--";
+
+    waitDiv.classList.add("low");
+  }
+
+  const status =
+    document.createElement("div");
+
+  status.className = "status";
+
+  status.textContent =
+    statusJP(item.status);
+
+  card.appendChild(name);
+  card.appendChild(waitDiv);
+  card.appendChild(status);
+
+  return card;
+}
+
+// 共通のデータ取得用関数
+async function fetchParkData(url, parkType) {
+  const res = await fetch(url);
+  if (!res.ok) {
+    throw new Error(`APIエラー ${res.status}`);
+  }
+  const data = await res.json();
+  return (data.liveData || [])
+    .filter(x => x.entityType === "ATTRACTION")
+    .map(x => ({ ...x, parkType: parkType })); // 各アトラクションに属するパーク情報を付与
+}
+
+async function loadData(){
+
+  const list =
+    document.getElementById("list");
+
+  list.innerHTML = "";
+
+  list.appendChild(
+    createLoading("読み込み中...")
+  );
+
+  try{
+
+    // ランドとシーのデータを並列で同時に取得
+    const [landAttractions, seaAttractions] = await Promise.all([
+      fetchParkData(LAND_URL, "land"),
+      fetchParkData(SEA_URL, "sea")
+    ]);
+
+    // 2つのデータを統合
+    let attractions = [...landAttractions, ...seaAttractions];
+
+    const parkType =
+      document.getElementById("parkSelect").value;
+
+    const filterType =
+      document.getElementById("filterSelect").value;
+
+    const sortType =
+      document.getElementById("sortSelect").value;
+
+    const keyword =
+      document.getElementById("searchInput").value.toLowerCase();
+
+    /* パークフィルター */
+    if (parkType !== "all") {
+      attractions = attractions.filter(x => x.parkType === parkType);
+    }
+
+    /* 検索 */
+
+    if(keyword){
+
+      attractions =
+        attractions.filter(x => {
+
+          const jpName =
+            nameJP[x.name] || x.name;
+
+          return jpName
+            .toLowerCase()
+            .includes(keyword);
+        });
+    }
+
+    /* フィルター */
+
+    if(filterType === "operating"){
+
+      attractions =
+        attractions.filter(
+          x => x.status === "OPERATING"
+        );
+    }
+
+    if(filterType === "busy"){
+
+      attractions =
+        attractions.filter(
+          x =>
+            (x.queue?.STANDBY?.waitTime ?? 0)
+            >= 60
+        );
+    }
+
+    /* 並び替え */
+
+    if(sortType === "wait-desc"){
+
+      attractions.sort((a,b) => {
+
+        return (
+          (b.queue?.STANDBY?.waitTime ?? -1)
+          -
+          (a.queue?.STANDBY?.waitTime ?? -1)
+        );
+
+      });
+    }
+
+    if(sortType === "wait-asc"){
+
+      attractions.sort((a,b) => {
+
+        return (
+          (a.queue?.STANDBY?.waitTime ?? 999)
+          -
+          (b.queue?.STANDBY?.waitTime ?? 999)
+        );
+
+      });
+    }
+
+    if(sortType === "name"){
+
+      attractions.sort((a,b) => {
+
+        const aName =
+          nameJP[a.name] || a.name;
+
+        const bName =
+          nameJP[b.name] || b.name;
+
+        return aName.localeCompare(
+          bName,
+          "ja"
+        );
+
+      });
+    }
+
+    list.innerHTML = "";
+
+    attractions.forEach(item => {
+
+      list.appendChild(
+        createCard(item)
+      );
+
+    });
+
+    document.getElementById(
+      "updated"
+    ).textContent =
+
+      "更新: " +
+      new Date().toLocaleString("ja-JP");
+
+  }catch(err){
+
+    console.error(err);
+
+    list.innerHTML = "";
+
+    list.appendChild(
+      createLoading("取得失敗")
+    );
+  }
+}
+
+// パーク選択のイベントリスナーを追加
+document
+  .getElementById("parkSelect")
+  .addEventListener(
+    "change",
+    loadData
+  );
+
+document
+  .getElementById("sortSelect")
+  .addEventListener(
+    "change",
+    loadData
+  );
+
+document
+  .getElementById("filterSelect")
+  .addEventListener(
+    "change",
+    loadData
+  );
+
+document
+  .getElementById("searchInput")
+  .addEventListener(
+    "input",
+    loadData
+  );
+
+loadData();
+
+setInterval(loadData, 60000);
+
+</script>
+
+</body>
+</html>
