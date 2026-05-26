@@ -1,0 +1,451 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>富士急ハイランド 待ち時間モニター</title>
+
+<style>
+body{
+  font-family: "Hiragino Sans", "Yu Gothic", sans-serif;
+  margin:0;
+  padding:20px;
+  /* 富士急をイメージした少しクール・スリリングなダーク＆ライトのグラデーション */
+  background: linear-gradient(135deg, #f1f5f9, #e2e8f0, #cbd5e1);
+  min-height:100vh;
+  color:#0f172a;
+}
+
+/* タイトル */
+h1{
+  text-align:center;
+  font-size:34px;
+  margin-bottom:28px;
+  color:#1e3a8a; /* 富士急ブルー */
+  font-weight:900;
+  letter-spacing:1px;
+}
+
+/* 更新ボタン */
+button{
+  display:block;
+  margin:0 auto 20px auto;
+  padding:14px 30px;
+  border:none;
+  border-radius:999px;
+  /* 富士急の絶叫をイメージした赤・黒系のグラデーション */
+  background: linear-gradient(90deg, #dc2626, #991b1b);
+  color:white;
+  font-size:16px;
+  font-weight:bold;
+  cursor:pointer;
+  box-shadow: 0 8px 18px rgba(220, 38, 38, 0.25);
+  transition:.2s;
+}
+
+button:hover{
+  transform: translateY(-2px) scale(1.03);
+}
+
+/* 検索ボックス */
+.search-area{
+  display:flex;
+  justify-content:center;
+  margin-bottom:22px;
+}
+
+.search-area input{
+  width:100%;
+  max-width:520px;
+  padding: 16px 22px;
+  border:none;
+  border-radius:22px;
+  font-size:16px;
+  font-weight:600;
+  color:#0f172a;
+  background: linear-gradient(145deg, rgba(255,255,255,.92), rgba(255,255,255,.72));
+  backdrop-filter:blur(14px);
+  box-shadow: 0 10px 28px rgba(30, 58, 138, 0.05), inset 0 1px 0 rgba(255,255,255,.8);
+  transition:.25s;
+}
+
+.search-area input::placeholder{
+  color:#94a3b8;
+}
+
+.search-area input:focus{
+  outline:none;
+  transform: translateY(-1px);
+  box-shadow: 0 0 0 5px rgba(30, 58, 138, 0.15), 0 14px 34px rgba(30, 58, 138, 0.1);
+}
+
+/* コントロールUI */
+.controls{
+  display:flex;
+  justify-content:center;
+  align-items:flex-end;
+  gap:18px;
+  margin-bottom:30px;
+  flex-wrap:wrap;
+}
+
+.select-wrap{
+  display:flex;
+  flex-direction:column;
+  gap:8px;
+}
+
+.select-wrap label{
+  font-size:13px;
+  font-weight:800;
+  color:#475569;
+  padding-left:8px;
+  letter-spacing:.5px;
+}
+
+.controls select{
+  appearance:none;
+  -webkit-appearance:none;
+  -moz-appearance:none;
+  border:none;
+  border-radius:20px;
+  padding: 15px 52px 15px 18px;
+  min-width:230px;
+  font-size:15px;
+  font-weight:700;
+  color:#0f172a;
+  cursor:pointer;
+  transition:.25s;
+  backdrop-filter:blur(14px);
+  background: linear-gradient(145deg, rgba(255,255,255,.92), rgba(255,255,255,.72));
+  box-shadow: 0 10px 28px rgba(30, 58, 138, 0.05), inset 0 1px 0 rgba(255,255,255,.8);
+  background-image:
+    linear-gradient(45deg, transparent 50%, #1e3a8a 50%),
+    linear-gradient(135deg, #1e3a8a 50%, transparent 50%);
+  background-position: calc(100% - 24px) calc(50% - 3px), calc(100% - 18px) calc(50% - 3px);
+  background-size: 6px 6px;
+  background-repeat:no-repeat;
+}
+
+/* グリッド */
+.grid{
+  display:grid;
+  grid-template-columns: repeat(auto-fill,minmax(260px,1fr));
+  gap:18px;
+}
+
+/* カード */
+.card{
+  position:relative;
+  background:white;
+  border-radius:24px;
+  padding:18px;
+  overflow:hidden;
+  box-shadow: 0 10px 24px rgba(148,163,184,.12);
+  transition:.2s;
+}
+
+.card::before{
+  content:"";
+  position:absolute;
+  top:0;
+  left:0;
+  width:100%;
+  height:6px;
+  background: linear-gradient(90deg, #1e3a8a, #dc2626, #22c55e);
+}
+
+.card:hover{
+  transform:translateY(-4px);
+  box-shadow: 0 14px 28px rgba(148,163,184,.22);
+}
+
+.name{
+  font-size:19px;
+  font-weight:700;
+  line-height:1.5;
+  margin-bottom:12px;
+  color:#0f172a;
+}
+
+.wait{
+  font-size:46px;
+  font-weight:900;
+  line-height:1;
+}
+
+.wait.low{ color:#22c55e; }
+.wait.middle{ color:#f59e0b; }
+.wait.high{ color:#ef4444; }
+
+.status{
+  margin-top:12px;
+  color:#64748b;
+  font-size:13px;
+}
+
+.loading{
+  background:white;
+  border-radius:24px;
+  padding:30px;
+  text-align:center;
+  box-shadow: 0 10px 24px rgba(148,163,184,.18);
+}
+
+.updated{
+  text-align:center;
+  margin-top:28px;
+  color:#64748b;
+  font-size:14px;
+}
+
+.footer{
+  margin-top:50px;
+  padding:30px 20px;
+  text-align:center;
+  border-top: 1px solid rgba(148,163,184,.25);
+  color:#64748b;
+  font-size:13px;
+  line-height:1.8;
+}
+
+.footer-note{
+  margin-top:10px;
+  font-size:12px;
+  color:#94a3b8;
+}
+
+@media (max-width:640px){
+  body{ padding:14px; }
+  h1{ font-size:26px; }
+  .grid{ grid-template-columns:1fr; }
+  .wait{ font-size:38px; }
+  .controls{ flex-direction:column; align-items:stretch; }
+  .controls select{ width:100%; min-width:unset; }
+}
+</style>
+</head>
+
+<body>
+
+<h1>
+富士急ハイランド<br>
+リアルタイム待ち時間モニター
+</h1>
+
+<button onclick="loadData()">更新</button>
+
+<div class="search-area">
+  <input type="text" id="searchInput" placeholder="アトラクションを検索...">
+</div>
+
+<div class="controls">
+  <div class="select-wrap">
+    <label>並び替え</label>
+    <select id="sortSelect">
+      <option value="wait-desc">待ち時間が長い順</option>
+      <option value="wait-asc">待ち時間が短い順</option>
+      <option value="name">名前順</option>
+    </select>
+  </div>
+
+  <div class="select-wrap">
+    <label>フィルター</label>
+    <select id="filterSelect">
+      <option value="all">すべて</option>
+      <option value="operating">運営中のみ</option>
+      <option value="busy">待ち時間 60分以上</option>
+    </select>
+  </div>
+</div>
+
+<div id="list" class="grid"></div>
+<div class="updated" id="updated"></div>
+
+<footer class="footer">
+  <p>© 2026 Ry - 富士急ハイランド待ち時間モニター All Rights Reserved.</p>
+  <p class="footer-note">
+    ※本サイトは個人が制作した非公式のファンサイトであり、富士急ハイランドおよびその運営会社とは一切関係ありません。
+  </p>
+  <p class="footer-note">
+    ※非公式のAPIから待ち時間情報を取得しているため、公式アプリやサイトの情報と異なることがあります。<br>
+    本情報の利用により生じた損害について、当サイトは一切の責任を負いません。
+  </p>
+</footer>
+
+<script>
+// 富士急ハイランドのAPI URL
+const FUJIQ_URL = "https://api.themeparks.wiki/v1/entity/ae527507-b1d0-4d40-83ea-143d87bef989/live";
+
+/* 英語名から日本語名への変換辞書（富士急ハイランド主要アトラクション） */
+  const nameJP = {
+    "Fujiyama - King of Coasters": "FUJIYAMA",
+    "Ninjutsu Training Museum - NARUTO NINJUTSU PHOTO STUDIO -": "忍術カーニバル（NARUTO・BORUTO 富士木ノ葉隠れの里）",
+    "Attack on Titan THE RIDE": "進撃の巨人 THE RIDE ～ウォール・マリア最終奪還作戦～",
+    "Shining Flower Ferris Wheel": "観覧車「シャイニング・フラワー」",
+    "Almost Like a Roller Coaster V": "ほぼほぼウミウシ（ほぼウミ）",
+    "Mischievous Cranky": "いたずらクランキー",
+    "Thomas and the Dancing Party": "トーマスのたのしいゆかいなドライブ",
+    "Takabisha - Steepest Roller Coaster": "高飛車",
+    "Wave Swinger": "ウェーブスウィンガー",
+    "FUJIYAMA SKYDECK": "FUJIYAMAスカイデッキ",
+    "Thomas and Percy's Fun Ride": "トーマスとパーシーのわくわくライド",
+    "Tentekomai - Sky Roller": "テンテコマイ",
+    "Red Drop Tower": "レッド・タワー",
+    "Samll Lane of GeGeGe no Kitaro - Monsters' story": "ゲゲゲの妖怪横丁",
+    "Fuji Airways - 4D Ride": "富士飛行社",
+    "Eejanaika - 4th Dimension Hypercoaster": "ええじゃないか",
+    "Ultimate Fort　-IMPOSSIBLE GAMES-": "絶望要塞 -IMPOSSIBLE GAMES-",
+    "Lisa and Gaspard Dairy of Sky Journey": "リサとガスパールのそらたびにっき",
+    "Thomas' Treasure Hunt": "ガタゴトだいぼうけん！",
+    "Hopping Winston": "ホッピング ウィンストン",
+    "Let's Go! Harold's Sky Patrol": "レッツゴーターミナル / ハロルドのスカイパトロール",
+    "Thomas' Dokidoki Playground": "トーマスのドキドキプレイグラウンド",
+    "Nia and Animal Coaster": "ニアとアニマルコースター",
+    "GO! GO! Bulstrode": "GO!GO!バルストロード",
+    "Lisa and Gaspard amazing mirror": "リサとガスパールのいたずら鏡の館",
+    "3D-Maze Thomas Circus": "トーマスサーカス（3D迷路）",
+    "Phantom theater": "幻影劇場",
+    "Eiffel Tower Carousel": "エッフェル塔カルーセル",
+    "Naruto X Boruto Ninja Voltage 3D Shooting Ride": "科学忍具道場（NARUTO×BORUTO）",
+    "FUJIYAMA WALK": "FUJIYAMAウォーク",
+    "FUJIYAMA SLIDER": "FUJIYAMAスライダー",
+    "ZOKKON": "ZOKKON",
+    "Thomas' Happy Smile": "トーマスのハッピースマイル",
+    "Sky Cycle": "スカイサイクル",
+    "Tekkotsubanchou - Sky Tower Swinger": "鉄骨番長",
+    "Tondemina - Super Pendulum": "トンデミーナ",
+    "Nagashimasuka - Shoot the Chute": "ナガシマスカ",
+    "Par-tea Cup": "パリのパティシエ（ティーカップ）",
+    "Super Scary Labyrinth of Fear": "戦慄迷宮 ～慈急総合病院～",
+    "Panic Clock": "パニック・ロック",
+    "Thomas's Bubbly Splash": "うきうきクルーズ"
+  };
+function statusJP(status){
+  switch(status){
+    case "OPERATING": return "運営中";
+    case "DOWN": return "休止中";
+    case "CLOSED": return "終了";
+    case "REFURBISHMENT": return "メンテナンス休止";
+    default: return status;
+  }
+}
+
+function waitClass(wait){
+  if(wait >= 120) return "high";
+  if(wait >= 60) return "middle";
+  return "low";
+}
+
+function createLoading(text){
+  const div = document.createElement("div");
+  div.className = "loading";
+  div.textContent = text;
+  return div;
+}
+
+function createCard(item){
+  const card = document.createElement("div");
+  card.className = "card";
+
+  const name = document.createElement("div");
+  name.className = "name";
+  // 辞書にあれば日本語、なければ配信された名前をそのまま表示
+  name.textContent = nameJP[item.name] || item.name;
+
+  const waitDiv = document.createElement("div");
+  waitDiv.className = "wait";
+
+  const waitTime = item.queue?.STANDBY?.waitTime;
+  if(waitTime != null){
+    waitDiv.textContent = waitTime + "分";
+    waitDiv.classList.add(waitClass(waitTime));
+  } else {
+    waitDiv.textContent = "--";
+    waitDiv.classList.add("low");
+  }
+
+  const status = document.createElement("div");
+  status.className = "status";
+  status.textContent = statusJP(item.status);
+
+  card.appendChild(name);
+  card.appendChild(waitDiv);
+  card.appendChild(status);
+
+  return card;
+}
+
+async function loadData(){
+  const list = document.getElementById("list");
+  list.innerHTML = "";
+  list.appendChild(createLoading("読み込み中..."));
+
+  try{
+    const res = await fetch(FUJIQ_URL);
+    if (!res.ok) throw new Error(`APIエラー ${res.status}`);
+    
+    const data = await res.json();
+    // ATTRACTION（アトラクション）属性のみ抽出
+    let attractions = (data.liveData || []).filter(x => x.entityType === "ATTRACTION");
+
+    const filterType = document.getElementById("filterSelect").value;
+    const sortType = document.getElementById("sortSelect").value;
+    const keyword = document.getElementById("searchInput").value.toLowerCase();
+
+    /* 検索 */
+    if(keyword){
+      attractions = attractions.filter(x => {
+        const jpName = nameJP[x.name] || x.name;
+        return jpName.toLowerCase().includes(keyword);
+      });
+    }
+
+    /* フィルター */
+    if(filterType === "operating"){
+      attractions = attractions.filter(x => x.status === "OPERATING");
+    }
+    if(filterType === "busy"){
+      attractions = attractions.filter(x => (x.queue?.STANDBY?.waitTime ?? 0) >= 60);
+    }
+
+    /* 並び替え */
+    if(sortType === "wait-desc"){
+      attractions.sort((a,b) => (b.queue?.STANDBY?.waitTime ?? -1) - (a.queue?.STANDBY?.waitTime ?? -1));
+    }
+    if(sortType === "wait-asc"){
+      attractions.sort((a,b) => (a.queue?.STANDBY?.waitTime ?? 999) - (b.queue?.STANDBY?.waitTime ?? 999));
+    }
+    if(sortType === "name"){
+      attractions.sort((a,b) => {
+        const aName = nameJP[a.name] || a.name;
+        const bName = nameJP[b.name] || b.name;
+        return aName.localeCompare(bName, "ja");
+      });
+    }
+
+    list.innerHTML = "";
+    attractions.forEach(item => {
+      list.appendChild(createCard(item));
+    });
+
+    document.getElementById("updated").textContent = "更新: " + new Date().toLocaleString("ja-JP");
+
+  }catch(err){
+    console.error(err);
+    list.innerHTML = "";
+    list.appendChild(createLoading("取得失敗"));
+  }
+}
+
+document.getElementById("sortSelect").addEventListener("change", loadData);
+document.getElementById("filterSelect").addEventListener("change", loadData);
+document.getElementById("searchInput").addEventListener("input", loadData);
+
+loadData();
+setInterval(loadData, 60000); // 60秒ごとに自動更新
+</script>
+
+</body>
+</html>
