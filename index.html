@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ry - アトラクション待ち時間モニターポータル</title>
+    <title>メンテナンス中 - Ry アトラクション待ち時間モニターポータル</title>
     <style>
         /* 全体のリセットと背景 */
         * {
@@ -47,11 +47,11 @@
 
         /* ヘッダー */
         header {
-            margin-bottom: 35px;
+            margin-bottom: 25px;
         }
         header h1 {
             font-size: 22px;
-            font-weight: ultra bold;
+            font-weight: bold;
             color: #1a2a3a;
             line-height: 1.5;
             letter-spacing: 0.05em;
@@ -62,58 +62,24 @@
             color: #657786;
         }
 
-        /* ボタンのコンテナ */
-        .button-container {
-            display: flex;
-            flex-direction: column;
-            gap: 16px;
+        /* メンテナンス情報エリア */
+        .maintenance-content {
+            margin: 20px 0;
         }
 
-        /* 共通ボタンスタイル */
-        .park-btn {
-            display: block;
-            width: 100%;
+        .maintenance-icon {
+            font-size: 48px;
+            margin-bottom: 15px;
+        }
+
+        .maintenance-message {
+            font-size: 15px;
+            line-height: 1.6;
+            color: #4a5568;
+            background: #f7fafc;
             padding: 20px;
-            font-size: 16px;
-            font-weight: bold;
-            text-align: center;
-            text-decoration: none;
-            color: #ffffff;
             border-radius: 12px;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-            transition: all 0.3s ease;
-        }
-
-        /* タップ（ホバー）時のエフェクト */
-        @media (hover: hover) {
-            .park-btn:hover {
-                transform: translateY(-2px);
-                box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
-                filter: brightness(1.05);
-            }
-        }
-        .park-btn:active {
-            transform: translateY(1px);
-        }
-
-        /* ディズニー用のボタンスタイル（シンデレラ城や魔法をイメージしたブルー） */
-        .btn-disney {
-            background: linear-gradient(135deg, #2575fc 0%, #1a365d 100%);
-        }
-
-        /* USJ用のボタンスタイル（エネルギッシュなハリウッド感のあるゴールド） */
-        .btn-usj {
-            background: linear-gradient(135deg, #f39c12 0%, #d35400 100%);
-        }
-
-        /*レゴランド用のボタンスタイル*/
-        .btn-legoland {
-            background: linear-gradient(135deg, #FF2A85 0%, #E60012 100%);
-        }
-
-        /*富士急ハイランド用のボタンスタイル*/
-        .btn-fujiq {
-            background: linear-gradient(135deg, #cee2f7d6 0%, #0072BC 100%);
+            border: 1px solid #e2e8f0;
         }
 
         /* フッター */
@@ -155,22 +121,16 @@
         <div class="portal-card">
             <header>
                 <h1>テーマパーク アトラクション<br>リアルタイム待ち時間モニター</h1>
-                <p>確認したいパークを選択してください。</p>
+                <p>ただいまシステムメンテナンス中です</p>
             </header>
 
-            <div class="button-container">
-                <a href="disneywaittime.html" class="park-btn btn-disney">
-                    東京ディズニーリゾート
-                </a>
-                <a href="usjwaittime.html" class="park-btn btn-usj">
-                    ユニバーサル・スタジオ・ジャパン
-                </a>
-                <a href="fujiqwaittime.html" class="park-btn btn-fujiq">
-                    富士急ハイランド
-                </a>
-                <a href="legolandwaittime.html" class="park-btn btn-legoland">
-                    レゴランド・ジャパン
-                </a>
+            <div class="maintenance-content">
+                <div class="maintenance-icon">🛠️</div>
+                <div class="maintenance-message">
+                    いつも当サイトをご利用いただきありがとうございます。<br><br>
+                    ただいま定期メンテナンス、またはシステム調整を実施しております。完了次第、通常通りサービスを再開いたします。<br><br>
+                    ご不便をおかけしますが、今しばらくお待ちください。
+                </div>
             </div>
         </div>
     </div>
